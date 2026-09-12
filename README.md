@@ -52,3 +52,17 @@ more than one or two at once.
 ## Instagram
 Linked from the nav, hero, reels header, about badge and footer —
 `INSTAGRAM` in `src/data/site.js`.
+
+## Deploy (Render)
+
+`render.yaml` at the repo root defines the static site — Blueprint deploys pick
+it up automatically. If the service was created by hand, set these in the
+dashboard instead:
+
+| Field | Value |
+| --- | --- |
+| Service type | **Static Site** (not Web Service) |
+| Build Command | `npm ci && npm run build` |
+| **Publish Directory** | `dist` |
+
+Publish Directory takes a *folder path*, not a command. Vite writes to `dist/`.
