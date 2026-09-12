@@ -3,7 +3,7 @@ import Media from './components/Media'
 import Lightbox from './components/Lightbox'
 import { useReveal, useScrollDriver, reduced } from './hooks'
 import {
-  INSTAGRAM, CONTACT, HERO_VIDEO, FILMS, RAIL_COUNT, SERVICES, CLIENTS, MARQUEE
+  INSTAGRAM, CONTACT, HERO_VIDEO, PORTRAIT, FILMS, RAIL_COUNT, SERVICES, CLIENTS, MARQUEE
 } from './data/site'
 
 /* ───────────────────────── icons ───────────────────────── */
@@ -243,9 +243,19 @@ const Services = () => (
 const About = () => (
   <section id="about" aria-labelledby="about-h">
     <div className="about">
-      <div className="about__portrait rv">
-        <Media label="Portrait" alt="Moamen Gemee on set" />
-        <span className="about__badge"><Ig /> {CONTACT.handle}</span>
+      <div className="about__aside rv">
+        <div className="about__portrait">
+          <img
+            className="about__img"
+            src={PORTRAIT.src}
+            alt={PORTRAIT.alt}
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+        <a className="about__badge" href={INSTAGRAM} target="_blank" rel="noreferrer">
+          <Ig /> {CONTACT.handle}
+        </a>
       </div>
       <div>
         <p className="eyebrow rv">The guy behind it</p>

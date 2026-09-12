@@ -14,6 +14,9 @@ export const CONTACT = {
 
 export const HERO_VIDEO = { src: '/videos/hero.mp4', poster: '/posters/hero.jpg' }
 
+// Studio portrait for the About section.
+export const PORTRAIT = { src: '/posters/portrait.jpg', alt: 'Moamen Gemee — creative director and camera man' }
+
 const v = (slug, title, client, kind) => ({
   id: slug,
   title,
