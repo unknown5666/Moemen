@@ -110,8 +110,7 @@ function Hero() {
     <header className="hero" id="top">
       <div className="hero__bg">
         <div ref={bg} style={{ position: 'absolute', inset: 0, transform: 'scale(1.12)' }}>
-          <video src={HERO_VIDEO.src} poster={HERO_VIDEO.poster}
-                 muted loop playsInline autoPlay preload="auto" aria-hidden="true" />
+          <Media src={HERO_VIDEO.src} poster={HERO_VIDEO.poster} label="Showreel" eager />
         </div>
       </div>
 

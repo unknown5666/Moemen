@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { usePlayWhenVisible } from '../hooks'
 
 const FilmIcon = () => (
@@ -10,12 +10,15 @@ const FilmIcon = () => (
 )
 
 /**
- * Silent looping preview that only decodes while it's on screen. The poster
- * paints instantly; the video is fetched lazily. Falls back to a designed
- * placeholder frame when no src is supplied.
+ * Poster <img> always paints; the muted loop fades in on top once it actually
+ * starts playing. Deliberately NOT relying on the video's own `poster`
+ * attribute — iOS Safari refuses to draw it while preload is "none", and if
+ * autoplay is blocked (Low Power Mode, Data Saver) you'd be left with a black
+ * box. This way the still is always visible and the video is pure upgrade.
  */
-export default function Media({ src, poster, label = 'Footage', alt }) {
+export default function Media({ src, poster, label = 'Footage', alt, eager = false }) {
   const ref = usePlayWhenVisible()
+  const [playing, setPlaying] = useState(false)
 
   if (!src) {
     return (
@@ -29,16 +32,29 @@ export default function Media({ src, poster, label = 'Footage', alt }) {
   }
 
   return (
-    <video
-      ref={ref}
-      src={src}
-      poster={poster || undefined}
-      muted
-      loop
-      playsInline
-      preload="none"
-      tabIndex={-1}
-      aria-label={alt || label}
-    />
+    <>
+      {poster && (
+        <img
+          className="media__poster"
+          src={poster}
+          alt={alt || label}
+          loading={eager ? 'eager' : 'lazy'}
+          decoding="async"
+          fetchpriority={eager ? 'high' : 'auto'}
+        />
+      )}
+      <video
+        ref={ref}
+        className={'media__vid' + (playing ? ' is-ready' : '')}
+        src={src}
+        muted
+        loop
+        playsInline
+        preload="none"
+        tabIndex={-1}
+        aria-hidden="true"
+        onPlaying={() => setPlaying(true)}
+      />
+    </>
   )
 }

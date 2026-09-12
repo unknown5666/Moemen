@@ -90,25 +90,43 @@ export function useCountUp(target, duration = 1400) {
   return [n, ref]
 }
 
-/** Plays a video only while it's on screen — keeps phones cool and scrolling smooth. */
+/**
+ * Plays a video only while it's on screen — keeps phones cool and scrolling
+ * smooth. If autoplay is refused (iOS Low Power Mode, Data Saver) the poster
+ * stays up and we retry once the visitor first touches the page, since that
+ * gesture unlocks playback for the rest of the session.
+ */
 export function usePlayWhenVisible() {
   const ref = useRef(null)
   useEffect(() => {
     const el = ref.current
     if (!el) return
+    let visible = false
+
+    const attempt = () => {
+      if (!visible) return
+      const p = el.play()
+      if (p && p.catch) p.catch(() => {})
+    }
+    const onGesture = () => attempt()
+
     const io = new IntersectionObserver(
       ([e]) => {
-        if (e.isIntersecting) {
-          const p = el.play()
-          if (p && p.catch) p.catch(() => {})
-        } else {
-          el.pause()
-        }
+        visible = e.isIntersecting
+        if (visible) attempt()
+        else el.pause()
       },
       { threshold: 0.25 }
     )
     io.observe(el)
-    return () => io.disconnect()
+    addEventListener('touchstart', onGesture, { passive: true, once: true })
+    addEventListener('click', onGesture, { once: true })
+
+    return () => {
+      io.disconnect()
+      removeEventListener('touchstart', onGesture)
+      removeEventListener('click', onGesture)
+    }
   }, [])
   return ref
 }
