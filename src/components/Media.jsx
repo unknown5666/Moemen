@@ -10,8 +10,9 @@ const FilmIcon = () => (
 )
 
 /**
- * Renders a muted looping video when `src` is set, otherwise a designed
- * placeholder frame. Swap in real files via src/data/site.js — no markup changes.
+ * Silent looping preview that only decodes while it's on screen. The poster
+ * paints instantly; the video is fetched lazily. Falls back to a designed
+ * placeholder frame when no src is supplied.
  */
 export default function Media({ src, poster, label = 'Footage', alt }) {
   const ref = usePlayWhenVisible()
@@ -35,7 +36,8 @@ export default function Media({ src, poster, label = 'Footage', alt }) {
       muted
       loop
       playsInline
-      preload="metadata"
+      preload="none"
+      tabIndex={-1}
       aria-label={alt || label}
     />
   )

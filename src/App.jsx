@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react'
 import Media from './components/Media'
-import { useReveal, useScrollDriver, useCountUp, reduced } from './hooks'
+import Lightbox from './components/Lightbox'
+import { useReveal, useScrollDriver, reduced } from './hooks'
 import {
-  INSTAGRAM, CONTACT, HERO_VIDEO, REELS, WORK, SERVICES, STATS, MARQUEE
+  INSTAGRAM, CONTACT, HERO_VIDEO, FILMS, RAIL_COUNT, SERVICES, CLIENTS, MARQUEE
 } from './data/site'
 
 /* ───────────────────────── icons ───────────────────────── */
@@ -43,8 +44,7 @@ function Cursor() {
       raf = requestAnimationFrame(loop)
     }
     const over = (e) => {
-      const hot = e.target.closest('a,button,.reel,.piece__frame')
-      document.body.dataset.hot = hot ? '1' : '0'
+      document.body.dataset.hot = e.target.closest('a,button,.card') ? '1' : '0'
     }
     addEventListener('mousemove', move, { passive: true })
     addEventListener('mouseover', over, { passive: true })
@@ -110,7 +110,8 @@ function Hero() {
     <header className="hero" id="top">
       <div className="hero__bg">
         <div ref={bg} style={{ position: 'absolute', inset: 0, transform: 'scale(1.12)' }}>
-          <Media src={HERO_VIDEO.src} poster={HERO_VIDEO.poster} label="Hero reel" />
+          <video src={HERO_VIDEO.src} poster={HERO_VIDEO.poster}
+                 muted loop playsInline autoPlay preload="auto" aria-hidden="true" />
         </div>
       </div>
 
@@ -126,13 +127,13 @@ function Hero() {
       </div>
 
       <div className="hero__cta">
-        <a className="btn btn--ember" href="#reels">Watch the reel <Play /></a>
+        <a className="btn btn--ember" href="#reels">Watch the work <Play /></a>
         <a className="btn btn--ghost" href={INSTAGRAM} target="_blank" rel="noreferrer">
           <Ig /> {CONTACT.handle}
         </a>
       </div>
 
-      <a className="scrollcue" href="#reels" aria-label="Scroll to reels">
+      <a className="scrollcue" href="#reels" aria-label="Scroll to the reels">
         <span>Scroll</span><i />
       </a>
     </header>
@@ -155,12 +156,33 @@ const Marquee = () => {
   )
 }
 
-/* ───────────────────────── reels rail ───────────────────────── */
-function Reels() {
+/* ───────────────────────── one film card ───────────────────────── */
+function Card({ film, i, onOpen, className = '' }) {
+  return (
+    <button
+      className={`card ${className}`}
+      onClick={() => onOpen(film)}
+      aria-label={`Play ${film.title} — full film`}
+    >
+      <Media src={film.preview} poster={film.poster} label={film.title} alt={film.title} />
+      <span className="card__veil" />
+      <span className="card__idx">{String(i + 1).padStart(2, '0')}</span>
+      <span className="card__kind">{film.kind}</span>
+      <span className="card__play"><Play /></span>
+      <span className="card__meta">
+        <strong>{film.title}</strong>
+        <em>{film.client}</em>
+      </span>
+    </button>
+  )
+}
+
+/* ───────────────────────── swipe rail ───────────────────────── */
+function Rail({ films, onOpen }) {
   const rail = useRef(null)
   const [active, setActive] = useState(0)
 
-  const onScroll = useCallback(() => {
+  const measure = useCallback(() => {
     const r = rail.current
     if (!r) return
     const mid = r.scrollLeft + r.clientWidth / 2
@@ -176,115 +198,32 @@ function Reels() {
     const r = rail.current
     if (!r) return
     let t = false
-    const h = () => { if (!t) { t = true; requestAnimationFrame(() => { t = false; onScroll() }) } }
+    const h = () => { if (!t) { t = true; requestAnimationFrame(() => { t = false; measure() }) } }
     r.addEventListener('scroll', h, { passive: true })
-    onScroll()
+    measure()
     return () => r.removeEventListener('scroll', h)
-  }, [onScroll])
+  }, [measure])
 
   return (
-    <section className="reels" id="reels" aria-labelledby="reels-h">
-      <div className="reels__head">
-        <div>
-          <p className="eyebrow rv">Vertical · 9:16</p>
-          <h2 className="h rv" id="reels-h" data-d="1">Thumb<br /><em>stoppers</em></h2>
-        </div>
-        <a className="pill rv" data-d="2" href={INSTAGRAM} target="_blank" rel="noreferrer">
-          <Ig /> More on IG
-        </a>
-      </div>
-
-      <div className="rail" ref={rail} role="list" aria-label="Vertical reels">
-        {REELS.map((r, i) => (
-          <article
-            className={'reel rv' + (i === active ? ' is-active' : '')}
-            key={r.id}
-            role="listitem"
-            data-d={String(Math.min(i, 4))}
-          >
-            <Media src={r.src} poster={r.poster} label={`Reel ${String(i + 1).padStart(2, '0')}`}
-                   alt={`${r.title} for ${r.client}`} />
-            <div className="reel__veil" />
-            <span className="reel__idx">{String(i + 1).padStart(2, '0')}</span>
-            <span className="reel__live"><i /> 9:16</span>
-            <div className="reel__meta">
-              <h3>{r.title}</h3>
-              <p>{r.client}</p>
-            </div>
-          </article>
+    <>
+      <div className="rail" ref={rail}>
+        {films.map((f, i) => (
+          <Card key={f.id} film={f} i={i} onOpen={onOpen}
+                className={'rv card--rail' + (i === active ? ' is-active' : '')} />
         ))}
       </div>
-
       <div className="raildots" aria-hidden="true">
-        {REELS.map((r, i) => <i key={r.id} className={i === active ? 'on' : ''} />)}
+        {films.map((f, i) => <i key={f.id} className={i === active ? 'on' : ''} />)}
       </div>
-    </section>
+    </>
   )
 }
 
-/* ───────────────────────── work ───────────────────────── */
-function Piece({ item, i }) {
-  const inner = useRef(null)
-  const frame = useRef(null)
-
-  useScrollDriver(() => {
-    const f = frame.current, el = inner.current
-    if (!f || !el || reduced()) return
-    const r = f.getBoundingClientRect()
-    if (r.bottom < -200 || r.top > innerHeight + 200) return
-    const p = (r.top + r.height / 2 - innerHeight / 2) / innerHeight
-    el.style.transform = `translate3d(0,${(-p * 6).toFixed(2)}%,0)`
-  })
-
-  return (
-    <article className="piece rv">
-      <div className="piece__frame" ref={frame}>
-        <span className="piece__tag">{item.kind}</span>
-        <div className="piece__inner">
-          <div ref={inner}>
-            <Media src={item.src} poster={item.poster}
-                   label={`Film ${String(i + 1).padStart(2, '0')}`} alt={item.title} />
-          </div>
-        </div>
-        <span className="piece__play"><Play /></span>
-      </div>
-      <div className="piece__body">
-        <div>
-          <h3>{item.title} <span className="yr">{item.year}</span></h3>
-          <p className="piece__role">{item.role}</p>
-        </div>
-        <p>{item.blurb}</p>
-      </div>
-    </article>
-  )
-}
-
-const Work = () => (
-  <section id="work" aria-labelledby="work-h">
-    <p className="eyebrow rv">Selected work</p>
-    <h2 className="h rv" data-d="1" id="work-h">Frames that <em>stay</em></h2>
-    <div className="work__list">
-      {WORK.map((w, i) => <Piece item={w} i={i} key={w.id} />)}
-    </div>
-  </section>
-)
-
-/* ───────────────────────── services + stats ───────────────────────── */
-function Stat({ v, suffix, l }) {
-  const [n, ref] = useCountUp(v)
-  return (
-    <div className="stat" ref={ref}>
-      <b>{n}<i>{suffix}</i></b>
-      <span>{l}</span>
-    </div>
-  )
-}
-
+/* ───────────────────────── sections ───────────────────────── */
 const Services = () => (
   <section id="services" aria-labelledby="svc-h">
     <p className="eyebrow rv">What I do</p>
     <h2 className="h rv" data-d="1" id="svc-h">Pick your <em>poison</em></h2>
-
     <div className="svc">
       {SERVICES.map((s, i) => (
         <div className="svc__row rv" key={s.n} data-d={String(Math.min(i, 4))}>
@@ -295,13 +234,13 @@ const Services = () => (
       ))}
     </div>
 
-    <div className="stats rv" style={{ marginTop: 'clamp(40px,8vw,72px)' }}>
-      {STATS.map((s) => <Stat key={s.l} {...s} />)}
+    <div className="clients rv">
+      <p className="eyebrow" style={{ margin: '0 0 14px' }}>Worked with</p>
+      <ul>{CLIENTS.map((c) => <li key={c}>{c}</li>)}</ul>
     </div>
   </section>
 )
 
-/* ───────────────────────── about ───────────────────────── */
 const About = () => (
   <section id="about" aria-labelledby="about-h">
     <div className="about">
@@ -316,12 +255,12 @@ const About = () => (
           I shoot the version of a moment you remember — not the one that actually happened.
         </p>
         <p className="rv" data-d="2">
-          Seven years of run-and-gun: brand films, commercials, weddings and social work that
-          has to land in the first second. I handle it end to end — concept, camera, cut and
-          colour — so nothing gets lost in the handover.
+          Beauty campaigns, real-estate launches, race days and broadcast work — shot and cut
+          for screens people hold in one hand. I run it end to end: concept, camera, edit and
+          colour, so nothing gets lost in the handover.
         </p>
         <p className="rv" data-d="3">
-          Based in Cairo, packed and ready for wherever the job is.
+          Based in Dubai, packed and ready for wherever the job is.
         </p>
         <div className="kit rv" data-d="3">
           <span>Sony FX</span><span>Primes</span><span>Gimbal</span>
@@ -332,7 +271,6 @@ const About = () => (
   </section>
 )
 
-/* ───────────────────────── contact ───────────────────────── */
 const Contact = () => (
   <section className="contact" id="contact" aria-labelledby="contact-h">
     <p className="eyebrow rv" style={{ justifyContent: 'center' }}>Next one is yours</p>
@@ -352,6 +290,7 @@ const Contact = () => (
 /* ───────────────────────── app ───────────────────────── */
 export default function App() {
   const bar = useRef(null)
+  const [open, setOpen] = useState(null)
   useReveal()
 
   useScrollDriver((y) => {
@@ -359,6 +298,9 @@ export default function App() {
     const max = document.documentElement.scrollHeight - innerHeight
     bar.current.style.transform = `scaleX(${max > 0 ? y / max : 0})`
   })
+
+  const rail = FILMS.slice(0, RAIL_COUNT)
+  const grid = FILMS.slice(RAIL_COUNT)
 
   return (
     <>
@@ -371,8 +313,31 @@ export default function App() {
       <main>
         <Hero />
         <Marquee />
-        <Reels />
-        <Work />
+
+        <section className="reels" id="reels" aria-labelledby="reels-h">
+          <div className="reels__head">
+            <div>
+              <p className="eyebrow rv">Selected · swipe</p>
+              <h2 className="h rv" id="reels-h" data-d="1">Thumb<br /><em>stoppers</em></h2>
+            </div>
+            <a className="pill rv" data-d="2" href={INSTAGRAM} target="_blank" rel="noreferrer">
+              <Ig /> More on IG
+            </a>
+          </div>
+          <Rail films={rail} onOpen={setOpen} />
+        </section>
+
+        <section id="work" aria-labelledby="work-h">
+          <p className="eyebrow rv">The rest of it</p>
+          <h2 className="h rv" data-d="1" id="work-h">Frames that <em>stay</em></h2>
+          <div className="grid">
+            {grid.map((f, i) => (
+              <Card key={f.id} film={f} i={i + RAIL_COUNT} onOpen={setOpen}
+                    className="rv" />
+            ))}
+          </div>
+        </section>
+
         <Marquee />
         <Services />
         <About />
@@ -384,6 +349,8 @@ export default function App() {
         <a href={INSTAGRAM} target="_blank" rel="noreferrer">{CONTACT.handle}</a>
         <a href="#top">Back to top ↑</a>
       </footer>
+
+      {open && <Lightbox film={open} onClose={() => setOpen(null)} />}
     </>
   )
 }

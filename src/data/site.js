@@ -1,7 +1,7 @@
 // ─── EDIT EVERYTHING HERE ────────────────────────────────────────────────
-// Drop video files in /public/videos and poster images in /public/posters,
-// then just point `src` / `poster` at them. Anything left null renders a
-// styled placeholder, so the site never looks broken while you're loading up.
+// Each piece has a 10s silent preview (autoplays in the card) and the full
+// cut with sound (loads only when someone taps to watch). Files live in
+// public/videos/preview + public/videos/full, posters in public/posters.
 
 export const INSTAGRAM =
   'https://www.instagram.com/moamen__videographer?stkn=dm01NjNocWJtanYy&utm_source=qr'
@@ -9,84 +9,56 @@ export const INSTAGRAM =
 export const CONTACT = {
   handle: '@moamen__videographer',
   email: 'Moamen.Gemee@hotmail.com',
-  whatsapp: '', // e.g. 'https://wa.me/201234567890'
-  location: 'Cairo, EG · shooting worldwide'
+  location: 'Dubai, UAE'
 }
 
-// Full-bleed hero background loop (muted, autoplay). 6–10s, 1080p, <3MB.
-export const HERO_VIDEO = {
-  src: null, // '/videos/hero.mp4'
-  poster: null // '/posters/hero.jpg'
-}
+export const HERO_VIDEO = { src: '/videos/hero.mp4', poster: '/posters/hero.jpg' }
 
-// Vertical 9:16 reels — the thumb-scroll rail. Add as many as you like.
-export const REELS = [
-  { id: 'r1', title: 'Neon Nights', client: 'Aura Studio', src: null, poster: null },
-  { id: 'r2', title: 'Golden Hour', client: 'Sahara Coffee', src: null, poster: null },
-  { id: 'r3', title: 'Concrete Bloom', client: 'Form Athletics', src: null, poster: null },
-  { id: 'r4', title: 'Salt & Smoke', client: 'Nour Kitchen', src: null, poster: null },
-  { id: 'r5', title: 'After Dark', client: 'Ritual Club', src: null, poster: null }
+const v = (slug, title, client, kind) => ({
+  id: slug,
+  title,
+  client,
+  kind,
+  preview: `/videos/preview/${slug}.mp4`,
+  full: `/videos/full/${slug}.mp4`,
+  poster: `/posters/${slug}.jpg`
+})
+
+// Order matters — this is the order they appear on the page.
+export const FILMS = [
+  v('dubai-world-cup', 'Dubai World Cup', 'Event Film', 'Event'),
+  v('sky-news', 'Sky News', 'Broadcast', 'Broadcast'),
+  v('hudabeauty', 'Huda Beauty', 'Beauty', 'Beauty'),
+  v('kiko', 'Kiko', 'Cosmetics', 'Beauty'),
+  v('azizi', 'Azizi', 'Real Estate', 'Real Estate'),
+  v('al-marwan', 'Al Marwan', 'Real Estate', 'Real Estate'),
+  v('al-marwan-dev', 'Al Marwan Developments', 'Real Estate', 'Real Estate'),
+  v('dubai', 'Dubai', 'City Film', 'Lifestyle'),
+  v('city-walk-barber-shoop', 'City Walk Barber', 'Grooming', 'Brand'),
+  v('barber-shoop', 'Barber Shop', 'Grooming', 'Brand'),
+  v('blush', 'Blush', 'Beauty', 'Beauty'),
+  v('dibs', 'Dibs', 'Beauty', 'Beauty'),
+  v('makeup', 'Makeup', 'Beauty', 'Beauty'),
+  v('bex', 'Bex', 'Brand', 'Brand'),
+  v('bts', 'Behind The Scenes', 'On Set', 'BTS')
 ]
 
-// Landscape 16:9 case-study films.
-export const WORK = [
-  {
-    id: 'w1',
-    title: 'Midnight Motion',
-    kind: 'Brand Film',
-    year: '2025',
-    role: 'Director · DP · Edit',
-    blurb: 'A 90-second night run through the city, cut to a heartbeat.',
-    src: null,
-    poster: null
-  },
-  {
-    id: 'w2',
-    title: 'The Quiet Craft',
-    kind: 'Documentary',
-    year: '2025',
-    role: 'DP · Colour',
-    blurb: 'Hands, steam and patience. Shot handheld on a 35mm prime.',
-    src: null,
-    poster: null
-  },
-  {
-    id: 'w3',
-    title: 'Run The Block',
-    kind: 'Commercial',
-    year: '2024',
-    role: 'Director · Edit',
-    blurb: 'Six locations, one take feel. Speed ramps doing the talking.',
-    src: null,
-    poster: null
-  },
-  {
-    id: 'w4',
-    title: 'Bride On Film',
-    kind: 'Wedding',
-    year: '2024',
-    role: 'DP · Edit',
-    blurb: 'No posing. Just the room, the light and the people in it.',
-    src: null,
-    poster: null
-  }
-]
+// First six ride the swipe rail up top; the rest fill the grid below.
+export const RAIL_COUNT = 6
 
 export const SERVICES = [
-  { n: '01', t: 'Brand Films', d: 'Story-led films that make a brand feel like a place you want to be.' },
-  { n: '02', t: 'Social Reels', d: 'Vertical-native edits built for the first 1.5 seconds.' },
-  { n: '03', t: 'Commercials', d: 'Concept, board, shoot, grade — delivered end to end.' },
-  { n: '04', t: 'Events & Weddings', d: 'Documentary eye, cinematic finish, zero awkward posing.' }
+  { n: '01', t: 'Brand & Product', d: 'Beauty, grooming and retail films built for the first second of a scroll.' },
+  { n: '02', t: 'Real Estate', d: 'Developments shot like destinations — space, light and scale.' },
+  { n: '03', t: 'Events & Broadcast', d: 'Live days covered end to end and cut fast enough to still matter.' },
+  { n: '04', t: 'Edit & Colour', d: 'Post on footage you already have. Cut, grade, sound, delivered.' }
 ]
 
-export const STATS = [
-  { v: 240, suffix: '+', l: 'Projects delivered' },
-  { v: 18, suffix: 'M', l: 'Views on client work' },
-  { v: 7, suffix: 'yrs', l: 'Behind the lens' },
-  { v: 60, suffix: '+', l: 'Brands & creators' }
+export const CLIENTS = [
+  'Dubai World Cup', 'Sky News', 'Huda Beauty', 'Kiko', 'Azizi',
+  'Al Marwan', 'City Walk Barber', 'Blush', 'Dibs', 'Bex'
 ]
 
 export const MARQUEE = [
-  'Brand Films', 'Reels', 'Commercials', 'Music Videos',
-  'Weddings', 'Colour Grading', 'Aerials', 'Docu'
+  'Brand Films', 'Reels', 'Real Estate', 'Beauty',
+  'Events', 'Broadcast', 'Colour', 'Edit'
 ]

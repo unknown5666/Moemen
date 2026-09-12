@@ -10,43 +10,34 @@ npm run dev      # http://localhost:5173 (also on your phone via the LAN URL)
 npm run build    # → dist/
 ```
 
-## Adding your real footage
+## Footage
 
-Everything editable lives in **`src/data/site.js`**. Nothing else needs touching.
+15 vertical films live in `src/data/site.js` (`FILMS`). Each one ships twice:
 
-1. Drop files into `public/videos/` and poster stills into `public/posters/`.
-2. Point at them:
+- `public/videos/preview/<slug>.mp4` — 10s, silent, ~400 KB. Autoplays in the card.
+- `public/videos/full/<slug>.mp4` — full cut with sound. Downloads only when tapped.
+- `public/posters/<slug>.jpg` — still frame, paints instantly.
 
-```js
-export const HERO_VIDEO = { src: '/videos/hero.mp4', poster: '/posters/hero.jpg' }
-
-export const REELS = [
-  { id: 'r1', title: 'Neon Nights', client: 'Aura Studio',
-    src: '/videos/neon.mp4', poster: '/posters/neon.jpg' },
-  ...
-]
-```
-
-Any entry left as `src: null` renders the animated placeholder frame, so the site
-never looks broken while you're mid-upload.
-
-### Video specs that keep it fast
-- **Hero**: 1080p, 6–10s, no audio, **under 3 MB** (`-crf 28`, H.264 mp4).
-- **Reels**: 720×1280, under 4 MB each.
-- **Films**: 1280×720 preview loops; link the full cut out if you want.
+Originals stay in `_originals/` (gitignored, untouched). To re-encode after adding
+a new source file, drop it in `_originals/` and rerun the ffmpeg lines below.
 
 ```bash
-ffmpeg -i in.mov -an -vf scale=-2:1080 -c:v libx264 -crf 28 -movflags +faststart out.mp4
+# preview
+ffmpeg -i in.mp4 -t 10 -an -vf "scale='min(432,iw)':-2,fps=24"   -c:v libx264 -crf 31 -maxrate 600k -bufsize 1200k -movflags +faststart preview/out.mp4
+# full
+ffmpeg -i in.mp4 -vf "scale='min(540,iw)':-2" -c:v libx264 -crf 30 -maxrate 1000k   -bufsize 2000k -c:a aac -b:a 64k -ac 1 -movflags +faststart full/out.mp4
+# poster
+ffmpeg -ss 1 -i in.mp4 -frames:v 1 -vf "scale='min(360,iw)':-2" -q:v 5 poster.jpg
 ```
 
-Videos only play while on screen (IntersectionObserver), so a phone never decodes
-more than one or two at once.
+Change `RAIL_COUNT` in `site.js` to move the split between the swipe rail and
+the grid below it.
 
 ## What's in the box
 - Scroll-progress bar, auto-hiding nav, film grain + vignette overlay
 - Hero with parallax background and masked line-rise type
-- Infinite marquee, snap-scroll 9:16 reel rail with active-card tracking
-- Parallax case-study frames, animated count-up stats, magnetic desktop cursor
+- Infinite marquee, snap-scroll 9:16 rail with active-card tracking
+- Tap-to-play lightbox for full cuts, magnetic desktop cursor
 - Full `prefers-reduced-motion` fallback, 44px+ touch targets, safe-area insets
 
 ## Instagram
